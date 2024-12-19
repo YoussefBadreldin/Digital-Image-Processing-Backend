@@ -1,23 +1,10 @@
 {
-  "version": 2,
-  "builds": [
-    {
-      "src": "api/**/*.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/enhance",
-      "dest": "/api/enhance.py"
-    },
-    {
-      "src": "/compress",
-      "dest": "/api/compress.py"
-    },
-    {
-      "src": "/segment",
-      "dest": "/api/segment.py"
-    }
-  ]
-}
+    "version": 2,
+    "builds": [
+      { "src": "server/app.py", "use": "@vercel/python" }
+    ],
+    "routes": [
+      { "src": "/(.*)", "dest": "server/app.py" }
+    ]
+  }
+  
