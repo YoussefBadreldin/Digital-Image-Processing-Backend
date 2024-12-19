@@ -1,4 +1,1 @@
-Flask
-pillow
-opencv-python-headless
-numpy
+pip freeze > requirements.txt
