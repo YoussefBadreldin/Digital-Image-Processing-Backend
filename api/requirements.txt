@@ -3,5 +3,5 @@ flask-cors
 opencv-python
 numpy
 pillow
-skimage
+scikit-image
 matplotlib
