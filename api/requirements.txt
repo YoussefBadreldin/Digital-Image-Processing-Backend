@@ -1,7 +1,6 @@
 flask
 flask-cors
-opencv-python
+opencv-python-headless
 numpy
 pillow
 scikit-image
-matplotlib
