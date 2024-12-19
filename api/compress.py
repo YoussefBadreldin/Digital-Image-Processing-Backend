@@ -1,19 +1,47 @@
-import cv2
-import numpy as np
 import os
+from PIL import Image
+import json
+from io import BytesIO
+import base64
 
 def handler(request):
-    # Get the image from the request
-    image_path = request.json.get('image_path', 'image1.jpg')
-    
-    # Read the image
-    image = cv2.imread(image_path)
-    
-    # Perform compression (simple quality-based JPEG compression)
-    compressed_image_path = '/tmp/compressed_image.jpg'
-    cv2.imwrite(compressed_image_path, image, [int(cv2.IMWRITE_JPEG_QUALITY), 50])
-    
+    if request.method == "POST":
+        try:
+            # Get image from request (assumed as base64-encoded string)
+            data = json.loads(request.body.decode())
+            img_data = base64.b64decode(data['image'])
+            
+            # Open image
+            img = Image.open(BytesIO(img_data))
+            
+            # Compress image (Example: Save with lower quality)
+            output = BytesIO()
+            img.save(output, format='JPEG', quality=50)  # Adjust the quality as needed
+            output.seek(0)
+            
+            # Return the compressed image as base64
+            compressed_img_base64 = base64.b64encode(output.read()).decode('utf-8')
+            
+            return {
+                "statusCode": 200,
+                "body": json.dumps({"compressed_image": compressed_img_base64}),
+                "headers": {
+                    "Content-Type": "application/json"
+                }
+            }
+        except Exception as e:
+            return {
+                "statusCode": 500,
+                "body": json.dumps({"error": str(e)}),
+                "headers": {
+                    "Content-Type": "application/json"
+                }
+            }
+
     return {
-        "statusCode": 200,
-        "body": f"Image compressed and saved at: {compressed_image_path}"
+        "statusCode": 405,
+        "body": json.dumps({"error": "Method not allowed"}),
+        "headers": {
+            "Content-Type": "application/json"
+        }
     }

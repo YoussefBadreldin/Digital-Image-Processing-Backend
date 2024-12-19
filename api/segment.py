@@ -1,31 +1,50 @@
-import cv2
-import numpy as np
-from skimage import color
-from skimage.segmentation import watershed
-from skimage.filters import sobel
+import os
+from PIL import Image
+import json
+from io import BytesIO
+import base64
 
 def handler(request):
-    # Get the image path from the request
-    image_path = request.json.get('image_path', 'image1.jpg')
-    
-    # Read the image
-    image = cv2.imread(image_path)
-    
-    # Convert to grayscale and perform watershed segmentation
-    grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    gradient = sobel(grayscale_image)
-    
-    markers = np.zeros_like(grayscale_image)
-    markers[grayscale_image < 50] = 1
-    markers[grayscale_image > 200] = 2
-    
-    segmented_image = watershed(gradient, markers)
-    
-    # Save the segmented image
-    segmented_image_path = '/tmp/segmented_image.jpg'
-    cv2.imwrite(segmented_image_path, segmented_image)
-    
+    if request.method == "POST":
+        try:
+            # Get image from request (assumed as base64-encoded string)
+            data = json.loads(request.body.decode())
+            img_data = base64.b64decode(data['image'])
+            
+            # Open image
+            img = Image.open(BytesIO(img_data))
+            
+            # For segmentation, you can use simple image processing (Example: Convert to grayscale)
+            segmented_img = img.convert('L')  # Convert to grayscale (simple segmentation)
+
+            # Save the segmented image to a BytesIO object
+            output = BytesIO()
+            segmented_img.save(output, format='PNG')
+            output.seek(0)
+            
+            # Return the segmented image as base64
+            segmented_img_base64 = base64.b64encode(output.read()).decode('utf-8')
+            
+            return {
+                "statusCode": 200,
+                "body": json.dumps({"segmented_image": segmented_img_base64}),
+                "headers": {
+                    "Content-Type": "application/json"
+                }
+            }
+        except Exception as e:
+            return {
+                "statusCode": 500,
+                "body": json.dumps({"error": str(e)}),
+                "headers": {
+                    "Content-Type": "application/json"
+                }
+            }
+
     return {
-        "statusCode": 200,
-        "body": f"Segmented image saved at: {segmented_image_path}"
+        "statusCode": 405,
+        "body": json.dumps({"error": "Method not allowed"}),
+        "headers": {
+            "Content-Type": "application/json"
+        }
     }
