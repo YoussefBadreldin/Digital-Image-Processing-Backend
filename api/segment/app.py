@@ -1,7 +1,21 @@
+from flask import Flask, request, jsonify
 import cv2
 import numpy as np
 import base64
 from skimage import color
+from flask_cors import CORS
+
+app = Flask(__name__)
+CORS(app)
+
+@app.route('/segment', methods=['POST'])
+def segment_route():
+    if 'image' not in request.files:
+        return jsonify({'error': 'No image file provided'}), 400
+
+    file = request.files['image']
+    result = process(file)
+    return jsonify(result)
 
 def process(file):
     image = cv2.imdecode(np.frombuffer(file.read(), np.uint8), cv2.IMREAD_UNCHANGED)
@@ -42,3 +56,6 @@ def watershed_segmentation(image):
 def encode_image(image):
     _, buffer = cv2.imencode('.png', image)
     return base64.b64encode(buffer).decode('utf-8')
+
+if __name__ == '__main__':
+    app.run(debug=True)
