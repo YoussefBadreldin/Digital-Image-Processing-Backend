@@ -3,10 +3,8 @@
   "builds": [
     {
       "src": "api/app.py",
-      "use": "@vercel/python",
-      "config": {
-        "includeFiles": "lib/**"
-      }
+      "use": "@vercel/python"
     }
-  ]
+  ],
+  "excludeFiles": ["test_images/*", "*.mp4", "*.h5", "large_files/*"]
 }
