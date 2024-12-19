@@ -23,5 +23,8 @@ def segment():
     result_path = segment_image(image)
     return jsonify({'result': result_path})
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# Vercel expects this handler function to be the entry point for the serverless function.
+def handler(request):
+    with app.app_context():
+        return app.full_dispatch_request()
+

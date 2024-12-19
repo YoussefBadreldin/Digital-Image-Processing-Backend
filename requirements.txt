@@ -1,0 +1,4 @@
+Flask
+pillow
+opencv-python
+numpy
