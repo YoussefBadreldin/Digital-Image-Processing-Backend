@@ -5,20 +5,22 @@ from segmentation import segment_image
 
 app = Flask(__name__)
 
-@app.route('/process', methods=['POST'])
-def process_image():
+@app.route('/compress', methods=['POST'])
+def compress():
     image = request.files['image']
-    action = request.form['action']
-    
-    if action == 'compress':
-        result_path = compress_image(image)
-    elif action == 'enhance':
-        result_path = enhance_image(image)
-    elif action == 'segment':
-        result_path = segment_image(image)
-    else:
-        return jsonify({'error': 'Invalid action'}), 400
-    
+    result_path = compress_image(image)
+    return jsonify({'result': result_path})
+
+@app.route('/enhance', methods=['POST'])
+def enhance():
+    image = request.files['image']
+    result_path = enhance_image(image)
+    return jsonify({'result': result_path})
+
+@app.route('/segment', methods=['POST'])
+def segment():
+    image = request.files['image']
+    result_path = segment_image(image)
     return jsonify({'result': result_path})
 
 if __name__ == '__main__':
