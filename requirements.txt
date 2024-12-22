@@ -1,8 +1,7 @@
-fastapi
-uvicorn
-python-multipart
-pillow
-opencv-python-headless
+# requirements.txt
+Flask
+Flask-Cors
+opencv-python
+Pillow
 matplotlib
-scikit-image
 numpy
