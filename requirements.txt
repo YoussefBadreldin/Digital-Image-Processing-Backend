@@ -1,5 +1,8 @@
-flask
-opencv-python
-Pillow
-numpy
+fastapi
+uvicorn
+python-multipart
+pillow
+opencv-python-headless
 matplotlib
+scikit-image
+numpy

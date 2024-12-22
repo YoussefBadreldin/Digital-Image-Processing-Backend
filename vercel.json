@@ -8,27 +8,7 @@
   ],
   "routes": [
     {
-      "src": "/compress/jpg",
-      "dest": "/main.py"
-    },
-    {
-      "src": "/compress/webp",
-      "dest": "/main.py"
-    },
-    {
-      "src": "/enhance/gray_level_slicing",
-      "dest": "/main.py"
-    },
-    {
-      "src": "/enhance/histogram_equalization",
-      "dest": "/main.py"
-    },
-    {
-      "src": "/segment/thresholding",
-      "dest": "/main.py"
-    },
-    {
-      "src": "/segment/watershed",
+      "src": "/.*",
       "dest": "/main.py"
     }
   ]

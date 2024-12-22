@@ -1,7 +1,8 @@
 from PIL import Image
+import io
 
-def webp_compression(image_path, quality=75):
-    img = Image.open(image_path)
-    output_path = 'compressed_webp.webp'
-    img.save(output_path, 'WEBP', quality=quality)
-    return output_path
+def compress_webp(image, quality=75):
+    buf = io.BytesIO()
+    image.save(buf, format="WEBP", quality=quality)
+    buf.seek(0)
+    return Image.open(buf)

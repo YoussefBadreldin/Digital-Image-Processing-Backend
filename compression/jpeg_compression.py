@@ -1,7 +1,8 @@
 from PIL import Image
+import io
 
-def jpeg_compression(image_path, quality=50):
-    img = Image.open(image_path)
-    output_path = 'compressed_jpeg.jpg'
-    img.save(output_path, 'JPEG', quality=quality)
-    return output_path
+def compress_jpeg(image, quality=50):
+    buf = io.BytesIO()
+    image.save(buf, format="JPEG", quality=quality)
+    buf.seek(0)
+    return Image.open(buf)

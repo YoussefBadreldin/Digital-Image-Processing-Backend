@@ -1,29 +1,28 @@
-from flask import Flask, request, jsonify
-from segmentation.thresholding_segmentation import thresholding_segmentation
+from fastapi import APIRouter, File, UploadFile
+from fastapi.responses import JSONResponse
+from PIL import Image
+import io
 from segmentation.watershed_segmentation import watershed_segmentation
 
-app = Flask(__name__)
+router = APIRouter()
 
-@app.route('/segment/thresholding', methods=['POST'])
-def segment_thresholding():
-    file = request.files['image']
-    threshold = int(request.form.get('threshold', 127))  # Default threshold if not provided
-    file.save("input_image.jpg")
-    binary_path, adaptive_path = thresholding_segmentation("input_image.jpg", threshold)
-    return jsonify({
-        "binary_image_path": binary_path,
-        "adaptive_image_path": adaptive_path
-    })
-
-@app.route('/segment/watershed', methods=['POST'])
-def segment_watershed():
-    file = request.files['image']
-    file.save("input_image.jpg")
-    watershed_result, colored_grains = watershed_segmentation("input_image.jpg")
-    return jsonify({
-        "watershed_image_path": watershed_result,
-        "colored_grains_image_path": colored_grains
-    })
-
-if __name__ == "__main__":
-    app.run(debug=True)
+@router.post("/segment")
+async def segment(file: UploadFile = File(...), type1: bool = False, type2: bool = False):
+    image = Image.open(io.BytesIO(await file.read()))
+    image_path = "uploaded_image.jpg"
+    image.save(image_path)
+    results = []
+    if type1:
+        watershed_result, _ = watershed_segmentation(image_path)
+        results.append(watershed_result)
+    if type2:
+        _, img2 = watershed_segmentation(image_path)
+        results.append(img2)
+    
+    response_data = {"segmented_images": []}
+    for result in results:
+        buf = io.BytesIO()
+        result.save(buf, format="JPEG")
+        response_data["segmented_images"].append(f"data:image/jpeg;base64,{buf.getvalue().hex()}")
+    
+    return JSONResponse(content=response_data)
