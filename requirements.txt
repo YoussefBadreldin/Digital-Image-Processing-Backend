@@ -1,5 +1,5 @@
-Flask
+flask
 opencv-python
 Pillow
 numpy
-scikit-image
+matplotlib
