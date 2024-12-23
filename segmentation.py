@@ -1,23 +1,24 @@
 import cv2
 import numpy as np
 import os
-from flask import send_file
 
-def thresholding(image, threshold, file_name):
-    _, binary_image = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY)
+OUTPUT_FOLDER = 'outputs'
 
-    adaptive_binary_image = cv2.adaptiveThreshold(
+def thresholding(image, threshold_value, file_name):
+    _, global_threshold_image = cv2.threshold(image, threshold_value, 255, cv2.THRESH_BINARY)
+
+    adaptive_threshold_image = cv2.adaptiveThreshold(
         image, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 2
     )
 
     # Save the results with descriptive names
     base_name = os.path.splitext(file_name)[0]
-    binary_image_path = os.path.join('outputs', f'{base_name}_global_thresholding.png')
-    adaptive_binary_image_path = os.path.join('outputs', f'{base_name}_adaptive_thresholding.png')
-    cv2.imwrite(binary_image_path, binary_image)
-    cv2.imwrite(adaptive_binary_image_path, adaptive_binary_image)
+    global_threshold_image_path = os.path.join(OUTPUT_FOLDER, f'{base_name}_global_threshold.png')
+    adaptive_threshold_image_path = os.path.join(OUTPUT_FOLDER, f'{base_name}_adaptive_threshold.png')
+    cv2.imwrite(global_threshold_image_path, global_threshold_image)
+    cv2.imwrite(adaptive_threshold_image_path, adaptive_threshold_image)
 
-    return binary_image_path, adaptive_binary_image_path
+    return global_threshold_image_path, adaptive_threshold_image_path
 
 
 def watershed_segmentation(image_path):
@@ -54,7 +55,7 @@ def watershed_segmentation(image_path):
 
     # Save the result with a descriptive name
     base_name = os.path.splitext(os.path.basename(image_path))[0]
-    segmented_image_path = os.path.join('outputs', f'{base_name}_watershed_segmented.png')
+    segmented_image_path = os.path.join(OUTPUT_FOLDER, f'{base_name}_watershed_segmented.png')
     cv2.imwrite(segmented_image_path, img)
 
     return segmented_image_path
