@@ -1,4 +1,3 @@
-<!-- app.py -->
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import os
@@ -17,7 +16,7 @@ if not os.path.exists(OUTPUT_FOLDER):
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    return jsonify({"status": "API is running"})
 
 @app.route('/enhance/gray_level_slicing', methods=['POST'])
 def gray_level_slicing_route():
@@ -54,5 +53,6 @@ def negative_route():
 def serve_output_file(filename):
     return send_from_directory(OUTPUT_FOLDER, filename)
 
+# For local development
 if __name__ == '__main__':
     app.run(debug=True) 
