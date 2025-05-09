@@ -1,7 +1,6 @@
 # requirements.txt
-Flask
-Flask-Cors
-opencv-python
-Pillow
-matplotlib
-numpy
+Flask==2.3.3
+Flask-CORS==4.0.0
+opencv-python==4.8.1
+numpy==1.26.4
+Werkzeug==2.3.8
