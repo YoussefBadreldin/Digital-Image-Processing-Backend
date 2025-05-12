@@ -105,7 +105,7 @@ def histogram_equalization(file):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def gray_level_slicing(file, min_val=100, max_val=150):
+def gray_level_slicing(file, min_val=0, max_val=255):
     try:
         # Generate unique filename
         unique_id = get_unique_filename(file.filename, "gray_slice")
@@ -122,40 +122,6 @@ def gray_level_slicing(file, min_val=100, max_val=150):
         # Apply gray level slicing
         output_image = np.copy(img)
         output_image[(img >= min_val) & (img <= max_val)] = 255
-        
-        # Create transformation plot
-        x = np.arange(0, 256)
-        y = np.copy(x)
-        y[(x >= min_val) & (x <= max_val)] = 255
-        
-        plt.figure(figsize=(8, 4))
-        plt.plot(x, y)
-        plt.title('Gray Level Slicing Transformation')
-        plt.xlabel('Input Intensity')
-        plt.ylabel('Output Intensity')
-        plt.grid(True)
-        transform_plot_path = os.path.join('outputs', f'{unique_id}_transform.png')
-        plt.savefig(transform_plot_path)
-        plt.close()
-        
-        # Create histogram comparison
-        hist_original = cv2.calcHist([img], [0], None, [256], [0, 256])
-        hist_original = hist_original.flatten() / hist_original.sum()
-        
-        hist_sliced = cv2.calcHist([output_image], [0], None, [256], [0, 256])
-        hist_sliced = hist_sliced.flatten() / hist_sliced.sum()
-        
-        plt.figure(figsize=(8, 4))
-        plt.plot(hist_original, label='Original')
-        plt.plot(hist_sliced, label='Sliced')
-        plt.title('Histogram Comparison')
-        plt.xlabel('Pixel Intensity')
-        plt.ylabel('Normalized Frequency')
-        plt.legend()
-        plt.grid(True)
-        hist_plot_path = os.path.join('outputs', f'{unique_id}_histogram.png')
-        plt.savefig(hist_plot_path)
-        plt.close()
 
         # Save the enhanced image
         output_filepath = os.path.join('outputs', f'{unique_id}.jpg')
@@ -164,18 +130,10 @@ def gray_level_slicing(file, min_val=100, max_val=150):
         # Read the processed image and convert to base64
         with open(output_filepath, 'rb') as img_file:
             img_data = base64.b64encode(img_file.read()).decode('utf-8')
-        
-        # Read the plots and convert to base64
-        with open(transform_plot_path, 'rb') as plot_file:
-            transform_plot_data = base64.b64encode(plot_file.read()).decode('utf-8')
-        with open(hist_plot_path, 'rb') as plot_file:
-            hist_plot_data = base64.b64encode(plot_file.read()).decode('utf-8')
 
         return jsonify({
             "success": True,
             "image": img_data,
-            "transform_plot": transform_plot_data,
-            "histogram_plot": hist_plot_data,
             "filename": os.path.basename(output_filepath)
         })
 
@@ -195,52 +153,16 @@ def power_law_transformation(file, gamma=0.5):
         img, error = load_image(file, filepath)
         if error:
             return jsonify({"error": error}), 400
-
-        # Create transformation plot
-        x = np.arange(0, 256)
-        # Normalize x to [0, 1] range
-        x_norm = x / 255.0
-        # Apply power-law transformation
-        y_norm = np.power(x_norm, gamma)
-        # Convert back to [0, 255] range
-        y = y_norm * 255.0
         
-        plt.figure(figsize=(8, 4))
-        plt.plot(x, y)
-        plt.title(f'Power-Law Transformation (Gamma = {gamma})')
-        plt.xlabel('Input Intensity')
-        plt.ylabel('Output Intensity')
-        plt.grid(True)
-        transform_plot_path = os.path.join('outputs', f'{unique_id}_transform.png')
-        plt.savefig(transform_plot_path)
-        plt.close()
-
-        # Apply power-law transformation to the image
-        # First convert to float32 for precision
-        img_float = img.astype(np.float32) / 255.0
-        # Apply gamma correction
-        output_float = np.power(img_float, gamma)
-        # Convert back to uint8
-        output_image = (output_float * 255.0).clip(0, 255).astype(np.uint8)
-        
-        # Create histogram comparison
-        hist_original = cv2.calcHist([img], [0], None, [256], [0, 256])
-        hist_original = hist_original.flatten() / hist_original.sum()
-        
-        hist_transformed = cv2.calcHist([output_image], [0], None, [256], [0, 256])
-        hist_transformed = hist_transformed.flatten() / hist_transformed.sum()
-        
-        plt.figure(figsize=(8, 4))
-        plt.plot(hist_original, label='Original')
-        plt.plot(hist_transformed, label='Power-Law')
-        plt.title('Histogram Comparison')
-        plt.xlabel('Pixel Intensity')
-        plt.ylabel('Normalized Frequency')
-        plt.legend()
-        plt.grid(True)
-        hist_plot_path = os.path.join('outputs', f'{unique_id}_histogram.png')
-        plt.savefig(hist_plot_path)
-        plt.close()
+        # Apply power law transformation
+        # Convert to float32 to avoid overflow
+        img_float = img.astype(np.float32)
+        # Normalize to [0,1]
+        normalized = img_float / 255.0
+        # Apply gamma correction (using gamma directly, not 1/gamma)
+        transformed = np.power(normalized, gamma)
+        # Scale back to [0,255] and convert to uint8
+        output_image = np.clip(transformed * 255.0, 0, 255).astype(np.uint8)
 
         # Save the enhanced image
         output_filepath = os.path.join('outputs', f'{unique_id}.jpg')
@@ -249,18 +171,10 @@ def power_law_transformation(file, gamma=0.5):
         # Read the processed image and convert to base64
         with open(output_filepath, 'rb') as img_file:
             img_data = base64.b64encode(img_file.read()).decode('utf-8')
-            
-        # Read the plots and convert to base64
-        with open(transform_plot_path, 'rb') as plot_file:
-            transform_plot_data = base64.b64encode(plot_file.read()).decode('utf-8')
-        with open(hist_plot_path, 'rb') as plot_file:
-            hist_plot_data = base64.b64encode(plot_file.read()).decode('utf-8')
 
         return jsonify({
             "success": True,
             "image": img_data,
-            "transform_plot": transform_plot_data,
-            "histogram_plot": hist_plot_data,
             "filename": os.path.basename(output_filepath)
         })
 
@@ -281,41 +195,8 @@ def negative_transformation(file):
         if error:
             return jsonify({"error": error}), 400
 
-        # Create transformation plot
-        x = np.arange(0, 256)
-        y = 255 - x
-        
-        plt.figure(figsize=(8, 4))
-        plt.plot(x, y)
-        plt.title('Negative Transformation')
-        plt.xlabel('Input Intensity')
-        plt.ylabel('Output Intensity')
-        plt.grid(True)
-        transform_plot_path = os.path.join('outputs', f'{unique_id}_transform.png')
-        plt.savefig(transform_plot_path)
-        plt.close()
-
-        # Apply negative transformation
+        # Invert the image (simple negative)
         output_image = 255 - img
-        
-        # Create histogram comparison
-        hist_original = cv2.calcHist([img], [0], None, [256], [0, 256])
-        hist_original = hist_original.flatten() / hist_original.sum()
-        
-        hist_negative = cv2.calcHist([output_image], [0], None, [256], [0, 256])
-        hist_negative = hist_negative.flatten() / hist_negative.sum()
-        
-        plt.figure(figsize=(8, 4))
-        plt.plot(hist_original, label='Original')
-        plt.plot(hist_negative, label='Negative')
-        plt.title('Histogram Comparison')
-        plt.xlabel('Pixel Intensity')
-        plt.ylabel('Normalized Frequency')
-        plt.legend()
-        plt.grid(True)
-        hist_plot_path = os.path.join('outputs', f'{unique_id}_histogram.png')
-        plt.savefig(hist_plot_path)
-        plt.close()
 
         # Save the enhanced image as PNG to avoid compression artifacts
         output_filepath = os.path.join('outputs', f'{unique_id}.png')
@@ -324,18 +205,10 @@ def negative_transformation(file):
         # Read the processed image and convert to base64
         with open(output_filepath, 'rb') as img_file:
             img_data = base64.b64encode(img_file.read()).decode('utf-8')
-            
-        # Read the plots and convert to base64
-        with open(transform_plot_path, 'rb') as plot_file:
-            transform_plot_data = base64.b64encode(plot_file.read()).decode('utf-8')
-        with open(hist_plot_path, 'rb') as plot_file:
-            hist_plot_data = base64.b64encode(plot_file.read()).decode('utf-8')
 
         return jsonify({
             "success": True,
             "image": img_data,
-            "transform_plot": transform_plot_data,
-            "histogram_plot": hist_plot_data,
             "filename": os.path.basename(output_filepath)
         })
 
