@@ -9,6 +9,7 @@ CORS(app)  # Enable CORS for all routes
 # Set up upload and output directories
 UPLOAD_FOLDER = 'Uploads'
 OUTPUT_FOLDER = 'outputs'
+
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 if not os.path.exists(OUTPUT_FOLDER):
@@ -37,7 +38,7 @@ def histogram_equalization_route():
 @app.route('/enhance/power_law', methods=['POST'])
 def power_law_route():
     file = request.files.get('image')
-    gamma = float(request.form.get('gamma', 1.0))
+    gamma = float(request.form.get('gamma', 0.5))  # Default gamma value changed to 0.5
     if not file:
         return jsonify({"error": "No file uploaded"}), 400
     return power_law_transformation(file, gamma)
@@ -55,4 +56,4 @@ def serve_output_file(filename):
 
 # For local development
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)
